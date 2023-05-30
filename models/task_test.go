@@ -23,7 +23,6 @@ func TestTask_Map(t *testing.T) {
 		Deadline:    deadline,
 		Priority:    2,
 		Assignee:    "Ali",
-		//sdada
 	}
 
 	expectedMap := map[string]interface{}{
