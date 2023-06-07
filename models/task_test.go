@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func TestestCaseask_Map(t *testing.T) {
+func TestCaseAsk_Map(t *testing.T) {
 
 	deadlineInput := "2023-06-01T10:00:00Z"
 	deadline, err := time.Parse(time.RFC3339, deadlineInput)
@@ -55,6 +55,7 @@ func TestestCaseask_Map(t *testing.T) {
 		{
 			name: " success - task struct to map with fewer fields",
 			task: task{
+				ID:        "1",
 				Name:      "Sample Task",
 				CreatedAt: createdAt,
 				Status:    "Pending",
@@ -62,7 +63,7 @@ func TestestCaseask_Map(t *testing.T) {
 				Priority:  3,
 			},
 			want: map[string]interface{}{
-				"ID":          "",
+				"ID":          "1",
 				"Name":        "Sample Task",
 				"CreatedAt":   createdAt,
 				"Status":      "Pending",
@@ -93,12 +94,13 @@ func TestestCaseask_Map(t *testing.T) {
 
 }
 
-func TestStudent_Names(t *testing.T) {
+func TestTask_Names(t *testing.T) {
 	deadlineInput := "2023-06-01T10:00:00Z"
 	deadline, err := time.Parse(time.RFC3339, deadlineInput)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	createdAt := time.Now()
 	type task struct {
 		ID          string
@@ -156,6 +158,7 @@ func TestStudent_Names(t *testing.T) {
 			if got := s.Names(); !reflect.DeepEqual(got, testCase.want) {
 				t.Errorf("Names() = %v, want %v", got, testCase.want)
 			}
+
 		})
 	}
 }
