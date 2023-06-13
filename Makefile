@@ -1,5 +1,5 @@
 mysqlinit:mysqlstop
-	docker run --name task-schedular-mysql-db -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3307:3307 -d mysql
+	docker run --name task-schedular-mysql-db -e MYSQL_ALLOW_EMPTY_PASSWORD=yes -p 3306:3306 -d mysql
 mymongoinit:mongostop
 	docker run --name my-mongo-container -d -p 27017:27017 mongo
 	sleep 15

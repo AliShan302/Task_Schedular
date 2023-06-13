@@ -76,6 +76,7 @@ func (c *sqlClient) SaveTask(task *models.Task) error {
 	query := `
 		INSERT INTO tasks ( id, name, created_at, status, description, deadline, priority, assignee)
 		VALUES (:id, :name, :created_at, :status, :description, :deadline, :priority, :assignee)
+
 		ON DUPLICATE KEY UPDATE
 			name = :name,
 			created_at = :created_at,

@@ -50,12 +50,13 @@ func (m *mongoClient) SaveTask(task *models.Task) error {
 	}
 
 	collection := m.conn.Database(viper.GetString(config.DbName)).Collection(taskCollection)
+
 	filter := bson.M{"_id": task.ID}
 	update := bson.M{"$set": task}
 
 	opts := options.Update().SetUpsert(true)
-
 	if _, err := collection.UpdateOne(context.TODO(), filter, update, opts); err != nil {
+	if _, err := collection.InsertOne(context.TODO(), task); err != nil {
 		return errors.Wrap(err, "failed to save a task")
 	}
 

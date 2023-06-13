@@ -11,7 +11,7 @@ import (
 )
 
 func Test_client_SaveTask(t *testing.T) {
-	os.Setenv("DB_PORT", "3307")
+	os.Setenv("DB_PORT", "3306")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 	deadlineInput := "2023-06-01T10:00:00Z"
@@ -70,7 +70,7 @@ func Test_client_SaveTask(t *testing.T) {
 	}
 }
 func Test_client_RemoveTask(t *testing.T) {
-	os.Setenv("DB_PORT", "3307")
+	os.Setenv("DB_PORT", "3306")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 
@@ -102,7 +102,7 @@ func Test_client_RemoveTask(t *testing.T) {
 }
 
 func Test_client_GetTaskByID(t *testing.T) {
-	os.Setenv("DB_PORT", "3307")
+	os.Setenv("DB_PORT", "3306")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 
@@ -139,7 +139,7 @@ func Test_client_GetTaskByID(t *testing.T) {
 }
 
 func Test_client_ListTask(t *testing.T) {
-	os.Setenv("DB_PORT", "3307")
+	os.Setenv("DB_PORT", "3306")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 
