@@ -3,7 +3,7 @@ CREATE DATABASE task_schedular;
 use task_schedular;
 
 CREATE TABLE tasks (
-                       id VARCHAR(250)  ,
+                       id VARCHAR(250)  PRIMARY KEY,
                        name VARCHAR(255) NOT NULL,
                        created_at DATETIME  DEFAULT CURRENT_TIMESTAMP ,
                        status VARCHAR(20),
