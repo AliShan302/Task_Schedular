@@ -11,6 +11,8 @@ mysqlstop:
 	bash ./scripts/mysql_stop.sh
 mongostop:
 	bash ./scripts/mongo_stop.sh
+check:
+	bash ./scripts/check.sh
 db_mysql_prepare:mysqlinit
 	docker cp task_schedular.sql task-schedular-mysql-db:task_schedular.sql
 	echo "Executing databases...wait for 15 seconds"
@@ -21,4 +23,5 @@ db_mongo_prepare: mymongoinit
 test: db_mongo_prepare db_mysql_prepare
 	bash ./scripts/test.sh
 
-.PHONY: mysqlinit mymongoinit createmysqldb dropmysqldn mysqlstop mongostop test
+
+.PHONY: test check

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"log"
 
 	"github.com/AliShan302/Task_Schedular/models"
@@ -8,10 +9,11 @@ import (
 
 // DataStore interface represents the common methods for database operations.
 type DataStore interface {
-	SaveTask(task *models.Task) error
-	GetTaskByID(taskID string) (*models.Task, error)
-	RemoveTask(taskID string) error
-	ListTasks() ([]*models.Task, error)
+	SaveTask(ctx context.Context, task *models.Task) error
+	GetTaskByID(ctx context.Context, taskID string) (*models.Task, error)
+	RemoveTask(ctx context.Context, taskID string) error
+	ListTasks(ctx context.Context) ([]*models.Task, error)
+	Disconnect(ctx context.Context) error
 }
 
 // Option configuration
