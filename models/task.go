@@ -8,14 +8,14 @@ import (
 
 // Task represents a task in the task scheduler.
 type Task struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	CreatedAt   time.Time `json:"created_at"`
-	Status      string    `json:"status"`
-	Description string    `json:"description"`
-	Deadline    time.Time `json:"deadline"`
-	Priority    int       `json:"priority"`
-	Assignee    string    `json:"assignee"`
+	ID          string    `json:"id" bson:"_id" db:"id" `
+	Name        string    `json:"name" bson:"name" db:"name" `
+	CreatedAt   time.Time `json:"created_at" bson:"created_at" db:"created_at"  `
+	Status      string    `json:"status" bson:"status" db:"status" `
+	Description string    `json:"description" bson:"description" db:"description" `
+	Deadline    time.Time `json:"deadline" bson:"deadline" db:"deadline" `
+	Priority    int       `json:"priority" bson:"priority" db:"priority" `
+	Assignee    string    `json:"assignee" bson:"assignee" db:"assignee" `
 }
 
 // Map returns a map representation of the Task struct.
