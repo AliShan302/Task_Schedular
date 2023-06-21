@@ -97,8 +97,18 @@ func (c *sqlClient) SaveTask(task *models.Task) error {
 
 // RemoveTask removes the tasks from mysql db
 func (c *sqlClient) RemoveTask(id string) error {
-	if _, err := c.db.Query(fmt.Sprintf(`DELETE FROM %s WHERE id= '%s'`, taskTableName, id)); err != nil {
-		return errors.Wrap(err, "failed to Remove Task")
+	result, err := c.db.Exec(fmt.Sprintf(`DELETE FROM %s WHERE id= ?`, taskTableName), id)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove task")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("task not found")
 	}
 
 	return nil

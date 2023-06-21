@@ -1,0 +1,11 @@
+version: "3.8"
+
+services:
+  my-mongo-container:
+    image: mongo
+    ports:
+      - 27017:27017
+  mycontainer:
+    image: task-schedular
+    ports:
+      - 8000:8000

@@ -11,6 +11,9 @@ const (
 	DbPort = "db.port"
 	DbUser = "db.user"
 	DbPass = "db.pass"
+
+	ServerHost = "server.host"
+	ServerPort = "server.port"
 )
 
 func init() {
@@ -21,9 +24,15 @@ func init() {
 	_ = viper.BindEnv(DbUser, "DB_USER")
 	_ = viper.BindEnv(DbPass, "DB_PASS")
 
+	// env var for server
+	_ = viper.BindEnv(ServerHost, "SERVER_HOST")
+	_ = viper.BindEnv(ServerPort, "SERVER_PORT")
+
 	// defaults
 	viper.SetDefault(DbName, "task_schedular")
 	viper.SetDefault(DbHost, "localhost")
-	viper.SetDefault(DbPort, "3306")
+	viper.SetDefault(DbPort, "27017")
 
+	viper.SetDefault(ServerHost, "localhost")
+	viper.SetDefault(ServerPort, "8080")
 }

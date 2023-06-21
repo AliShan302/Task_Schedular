@@ -1,0 +1,103 @@
+swagger: "2.0"
+info:
+  description: "Task Management System"
+  version: "0.0.1"
+  title: "Task Scheduler"
+host: "localhost:8080"
+basePath: "/"
+schemes:
+  - "http"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+paths:
+  /task:
+    post:
+      operationId: "addTask"
+      parameters:
+        - in: "body"
+          name: "task"
+          description: "task's details"
+          required: true
+          schema:
+            $ref: "#/definitions/Task"
+      responses:
+        201:
+
+          description: "task added"
+          schema:
+            $ref: "#/definitions/Task"
+        409:
+          description: "task already exists"
+        500:
+          description: "internal server error"
+    put:
+      operationId: "updateTask"
+      parameters:
+        - in: "body"
+          name: "task"
+          required: true
+          description: "task details"
+          schema:
+            $ref: "#/definitions/Task"
+      responses:
+        200:
+          description: "task updated"
+          schema:
+            $ref: "#/definitions/Task"
+        500:
+          description: "internal server error"
+    get:
+      operationId: "listTasks"
+      description: "return tasks"
+      responses:
+        200:
+          description: "tasks response"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Task"
+        404:
+          description: "tasks not found"
+        500:
+          description: "internal server error"
+
+  /task/{ID}:
+    delete:
+      operationId: "deleteTask"
+      parameters:
+        - in: "path"
+          name: "ID"
+          type: "string"
+          description: "UUID of the task"
+          required: true
+      responses:
+        204:
+          description: "task deleted"
+        404:
+          description: "task not found"
+        500:
+          description: "internal server error"
+definitions:
+  Task:
+    type: "object"
+    properties:
+      ID:
+        type: "string"
+      Name:
+        type: "string"
+      CreatedAt:
+        type: "string"
+        format: "date-time"
+      Status:
+        type: "string"
+      Description:
+        type: "string"
+      Deadline:
+        type: "string"
+        format: "date-time"  # or specify the appropriate format for your needs
+      Priority:
+        type: "integer"
+      Assignee:
+        type: "string"
