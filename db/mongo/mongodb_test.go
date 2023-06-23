@@ -15,6 +15,19 @@ func Test_mongoClient_GetTaskByID(t *testing.T) {
 	os.Setenv("DB_HOST", "localhost")
 
 	m, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := m.SaveTask(task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
 		id string
@@ -26,7 +39,7 @@ func Test_mongoClient_GetTaskByID(t *testing.T) {
 	}{
 		{
 			name:    "success - get task from db",
-			args:    args{id: "3256a0ff-dcdf-4ced-9f18-fe88f4760724"},
+			args:    args{task.ID},
 			wantErr: false,
 		},
 		{
@@ -38,10 +51,10 @@ func Test_mongoClient_GetTaskByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			got, err := m.GetTaskByID(tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetTaskByID() error = %v, wantErr %v", err, tt.wantErr)
-
 				return
 			}
 			fmt.Printf("got: %#v\n", got)
@@ -90,6 +103,19 @@ func Test_mongoClient_RemoveTask(t *testing.T) {
 	os.Setenv("DB_PORT", "27017")
 	os.Setenv("DB_HOST", "localhost")
 	m, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := m.SaveTask(task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
 		id string
@@ -101,7 +127,7 @@ func Test_mongoClient_RemoveTask(t *testing.T) {
 	}{
 		{
 			name:    "success - Remove task from db",
-			args:    args{id: "0db51f58-11a1-4db4-b69e-0f5d8142529311"},
+			args:    args{task.ID},
 			wantErr: false,
 		},
 		{

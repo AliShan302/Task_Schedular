@@ -56,10 +56,10 @@ func (m *mongoClient) SaveTask(task *models.Task) error {
 
 	opts := options.Update().SetUpsert(true)
 	if _, err := collection.UpdateOne(context.TODO(), filter, update, opts); err != nil {
-	if _, err := collection.InsertOne(context.TODO(), task); err != nil {
-		return errors.Wrap(err, "failed to save a task")
+		if _, err := collection.InsertOne(context.TODO(), task); err != nil {
+			return errors.Wrap(err, "failed to save a task")
+		}
 	}
-
 	return nil
 
 }

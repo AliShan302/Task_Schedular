@@ -70,11 +70,24 @@ func Test_client_SaveTask(t *testing.T) {
 	}
 }
 func Test_client_RemoveTask(t *testing.T) {
-	os.Setenv("DB_PORT", "3306")
+	os.Setenv("DB_PORT", "3307")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 
 	c, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := c.SaveTask(task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
 		id string
@@ -86,7 +99,7 @@ func Test_client_RemoveTask(t *testing.T) {
 	}{
 		{
 			name:    "success - Remove task from db",
-			args:    args{id: "62a264ed-c0d6-4cfa-a36d-9a4cc36252e5"},
+			args:    args{task.ID},
 			wantErr: false,
 		},
 	}
@@ -102,11 +115,24 @@ func Test_client_RemoveTask(t *testing.T) {
 }
 
 func Test_client_GetTaskByID(t *testing.T) {
-	os.Setenv("DB_PORT", "3306")
+	os.Setenv("DB_PORT", "3307")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 
 	c, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := c.SaveTask(task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
 		id string
@@ -118,7 +144,7 @@ func Test_client_GetTaskByID(t *testing.T) {
 	}{
 		{
 			name: "success - get task from db",
-			args: args{id: "b9e09f26-9a60-43e7-b2e7-959139c1e47c"},
+			args: args{task.ID},
 
 			wantErr: false,
 		},
@@ -139,7 +165,7 @@ func Test_client_GetTaskByID(t *testing.T) {
 }
 
 func Test_client_ListTask(t *testing.T) {
-	os.Setenv("DB_PORT", "3306")
+	os.Setenv("DB_PORT", "3307")
 	os.Setenv("DB_HOST", "task-schedular-mysql-db")
 	os.Setenv("DB_USER", "root")
 
