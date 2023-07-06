@@ -25,7 +25,7 @@ func init() {
 	db.Register("mongo", NewClient)
 }
 
-//The first implementation.
+// The first implementation.
 type mongoClient struct {
 	conn *mongo.Client
 }
@@ -43,7 +43,7 @@ func NewClient(conf db.Option) (db.DataStore, error) {
 }
 
 // SaveTask save tasks in mongo db
-func (m *mongoClient) SaveTask(task *models.Task) error {
+func (m *mongoClient) SaveTask(ctx context.Context, task *models.Task) error {
 	if task.ID == "" {
 
 		task.ID = uuid.NewV4().String()
@@ -55,34 +55,37 @@ func (m *mongoClient) SaveTask(task *models.Task) error {
 	update := bson.M{"$set": task}
 
 	opts := options.Update().SetUpsert(true)
-	if _, err := collection.UpdateOne(context.TODO(), filter, update, opts); err != nil {
-	if _, err := collection.InsertOne(context.TODO(), task); err != nil {
-		return errors.Wrap(err, "failed to save a task")
+	if _, err := collection.UpdateOne(ctx, filter, update, opts); err != nil {
+		if err == mongo.ErrNoDocuments {
+			return domainErr.NewAPIError(domainErr.NotFound, fmt.Sprintf("task: %s not found"))
+		}
+
+		return err
 	}
 
 	return nil
-
 }
 
 // GetTaskByID get tasks by id from mongo db
-func (m *mongoClient) GetTaskByID(taskID string) (*models.Task, error) {
+func (m *mongoClient) GetTaskByID(ctx context.Context, taskID string) (*models.Task, error) {
 	var task *models.Task
 	collection := m.conn.Database(viper.GetString(config.DbName)).Collection(taskCollection)
 
-	if err := collection.FindOne(context.TODO(), bson.M{"_id": taskID}).Decode(&task); err != nil {
+	if err := collection.FindOne(ctx, bson.M{"_id": taskID}).Decode(&task); err != nil {
 		if err == mongo.ErrNoDocuments {
 			return nil, domainErr.NewAPIError(domainErr.NotFound, fmt.Sprintf("task: %s not found", taskID))
 		}
 
 		return nil, err
 	}
+
 	return task, nil
 }
 
 // RemoveTask removes the tasks from mongo db
-func (m *mongoClient) RemoveTask(taskID string) error {
+func (m *mongoClient) RemoveTask(ctx context.Context, taskID string) error {
 	collection := m.conn.Database(viper.GetString(config.DbName)).Collection(taskCollection)
-	result, err := collection.DeleteOne(context.TODO(), bson.M{"_id": taskID})
+	result, err := collection.DeleteOne(ctx, bson.M{"_id": taskID})
 	if err != nil {
 		return errors.Wrap(err, "failed to delete task")
 	}
@@ -95,37 +98,41 @@ func (m *mongoClient) RemoveTask(taskID string) error {
 }
 
 // ListTasks removes the tasks from mongo db
-func (m *mongoClient) ListTasks() ([]*models.Task, error) {
+func (m *mongoClient) ListTasks(ctx context.Context) ([]*models.Task, error) {
+	tasks := make([]*models.Task, 0)
 	collection := m.conn.Database(viper.GetString(config.DbName)).Collection(taskCollection)
-	// Create an empty slice to store the retrieved tasks
-	tasks := []*models.Task{}
-
-	// Create an empty filter since we want to retrieve all tasks
 	filter := bson.M{}
-	// Execute the find operation on the collection
-	cursor, err := collection.Find(context.Background(), filter)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(context.Background())
 
-	// Iterate over the cursor and decode each document into a Task struct
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to retrieve list of tasks")
+	}
+	defer cursor.Close(ctx)
+
 	for cursor.Next(context.Background()) {
 		task := &models.Task{}
 
-		// Decode the current document into the Task struct
 		if err := cursor.Decode(task); err != nil {
 			return nil, err
 		}
-
-		// Append the task to the tasks slice
 		tasks = append(tasks, task)
 	}
+	if len(tasks) == 0 {
+		return nil, domainErr.NewAPIError(domainErr.NotFound, fmt.Sprintf("task: %s not found"))
+	}
 
-	// Check for any errors during iteration
 	if err := cursor.Err(); err != nil {
 		return nil, err
 	}
 
 	return tasks, nil
+}
+
+// Disconnect - closes the db connections
+func (c *mongoClient) Disconnect(ctx context.Context) error {
+	if err := c.conn.Disconnect(ctx); err != nil {
+		return errors.Wrap(err, "failed to disconnect mongo client")
+	}
+
+	return nil
 }

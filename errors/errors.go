@@ -3,6 +3,7 @@ package errors
 // const will be used for the status of api handlers
 const (
 	NotFound            = "NOT_FOUND"
+	Conflict            = "CONFLICT"
 	InternalServerError = "INTERNAL_SERVER_ERROR"
 )
 

@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -24,7 +25,7 @@ func init() {
 	db.Register("mysql", NewClient)
 }
 
-//The first implementation.
+// The first implementation.
 type sqlClient struct {
 	db *sqlx.DB
 }
@@ -35,7 +36,7 @@ func formatDSN() string {
 	cfg.Addr = fmt.Sprintf("%s:%s", viper.GetString(config.DbHost), viper.GetString(config.DbPort))
 	cfg.DBName = viper.GetString(config.DbName)
 	cfg.ParseTime = true
-	cfg.User = viper.GetString(config.DbUser)
+	cfg.User = "root"
 	cfg.Passwd = viper.GetString(config.DbPass)
 	return cfg.FormatDSN()
 }
@@ -52,12 +53,13 @@ func NewClient(conf db.Option) (db.DataStore, error) {
 }
 
 // GetTaskByID get tasks by id from mysql db
-func (c *sqlClient) GetTaskByID(id string) (*models.Task, error) {
+func (c *sqlClient) GetTaskByID(ctx context.Context, id string) (*models.Task, error) {
 	var task models.Task
 	if err := c.db.Get(&task, fmt.Sprintf(`SELECT * FROM %s WHERE id = '%s'`, taskTableName, id)); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, domainErr.NewAPIError(domainErr.NotFound, fmt.Sprintf("task: %s not found", id))
 		}
+
 		return nil, err
 	}
 
@@ -65,7 +67,7 @@ func (c *sqlClient) GetTaskByID(id string) (*models.Task, error) {
 }
 
 // SaveTask save tasks in mysql db
-func (c *sqlClient) SaveTask(task *models.Task) error {
+func (c *sqlClient) SaveTask(ctx context.Context, task *models.Task) error {
 	// Generate a new UUID for the task if ID is empty
 	if task.ID == "" {
 
@@ -96,32 +98,39 @@ func (c *sqlClient) SaveTask(task *models.Task) error {
 }
 
 // RemoveTask removes the tasks from mysql db
-func (c *sqlClient) RemoveTask(id string) error {
-	if _, err := c.db.Query(fmt.Sprintf(`DELETE FROM %s WHERE id= '%s'`, taskTableName, id)); err != nil {
-		return errors.Wrap(err, "failed to Remove Task")
+func (c *sqlClient) RemoveTask(ctx context.Context, id string) error {
+	result, err := c.db.Exec(fmt.Sprintf(`DELETE FROM %s WHERE id= ?`, taskTableName), id)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove task")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return errors.Wrap(err, "failed to get rows affected")
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("task not found")
 	}
 
 	return nil
 }
 
 // ListTasks lists the tasks from mysql db
-func (c *sqlClient) ListTasks() ([]*models.Task, error) {
+func (c *sqlClient) ListTasks(ctx context.Context) ([]*models.Task, error) {
 	// Prepare the SQL query to retrieve tasks
 	query := "SELECT id, name, description, deadline, priority, assignee, created_at, status FROM tasks"
 
-	// Execute the query and retrieve the result set
 	rows, err := c.db.Query(query)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	// Iterate over the result set and map each row to a Task struct
 	tasks := []*models.Task{}
 	for rows.Next() {
 		task := &models.Task{}
 
-		// Scan the row values into the Task struct fields
 		err := rows.Scan(&task.ID, &task.Name, &task.Description, &task.Deadline, &task.Priority, &task.Assignee, &task.CreatedAt, &task.Status)
 		if err != nil {
 			return nil, err
@@ -129,11 +138,22 @@ func (c *sqlClient) ListTasks() ([]*models.Task, error) {
 
 		tasks = append(tasks, task)
 	}
+	if len(tasks) == 0 {
+		return nil, domainErr.NewAPIError(domainErr.NotFound, fmt.Sprintf("task: %s not found"))
+	}
 
-	// Check for any errors during iteration
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
 	return tasks, nil
+}
+
+// Disconnect - closes the db connections
+func (c *sqlClient) Disconnect(ctx context.Context) error {
+	if err := c.db.Close(); err != nil {
+		return errors.Wrap(err, "failed to disconnect mysql client")
+	}
+
+	return nil
 }

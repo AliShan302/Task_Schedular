@@ -1,6 +1,7 @@
 package mysql
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -21,6 +22,7 @@ func Test_client_SaveTask(t *testing.T) {
 	}
 	createdAt := time.Now()
 	type args struct {
+		ctx  context.Context
 		task *models.Task
 	}
 	tests := []struct {
@@ -61,7 +63,7 @@ func Test_client_SaveTask(t *testing.T) {
 				t.Fatalf("Failed to create task: %v", err)
 			}
 
-			err = c.SaveTask(testCase.args.task)
+			err = c.SaveTask(testCase.args.ctx, testCase.args.task)
 			if (err != nil) != testCase.wantErr {
 				t.Errorf("SaveTask() error = %v, wantErr %v", err, testCase.wantErr)
 			}
@@ -75,9 +77,23 @@ func Test_client_RemoveTask(t *testing.T) {
 	os.Setenv("DB_USER", "root")
 
 	c, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := c.SaveTask(context.TODO(), task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
-		id string
+		ctx context.Context
+		id  string
 	}
 	tests := []struct {
 		name    string
@@ -86,14 +102,14 @@ func Test_client_RemoveTask(t *testing.T) {
 	}{
 		{
 			name:    "success - Remove task from db",
-			args:    args{id: "62a264ed-c0d6-4cfa-a36d-9a4cc36252e5"},
+			args:    args{id: task.ID},
 			wantErr: false,
 		},
 	}
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			if err := c.RemoveTask(testCase.args.id); (err != nil) != testCase.wantErr {
+			if err := c.RemoveTask(testCase.args.ctx, testCase.args.id); (err != nil) != testCase.wantErr {
 				t.Errorf("RemoveTask() error = %v, wantErr %v", err, testCase.wantErr)
 			}
 
@@ -107,9 +123,23 @@ func Test_client_GetTaskByID(t *testing.T) {
 	os.Setenv("DB_USER", "root")
 
 	c, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := c.SaveTask(context.TODO(), task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
-		id string
+		ctx context.Context
+		id  string
 	}
 	tests := []struct {
 		name    string
@@ -118,7 +148,7 @@ func Test_client_GetTaskByID(t *testing.T) {
 	}{
 		{
 			name: "success - get task from db",
-			args: args{id: "b9e09f26-9a60-43e7-b2e7-959139c1e47c"},
+			args: args{id: task.ID},
 
 			wantErr: false,
 		},
@@ -126,7 +156,7 @@ func Test_client_GetTaskByID(t *testing.T) {
 
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
-			got, err := c.GetTaskByID(testCase.args.id)
+			got, err := c.GetTaskByID(testCase.args.ctx, testCase.args.id)
 			if (err != nil) != testCase.wantErr {
 				t.Errorf("GetTaskByID() error = %v, wantErr %v", err, testCase.wantErr)
 				return
@@ -144,12 +174,14 @@ func Test_client_ListTask(t *testing.T) {
 	os.Setenv("DB_USER", "root")
 
 	type args struct {
+		ctx  context.Context
 		task *models.Task
 	}
 	c, _ := NewClient(db.Option{})
 
 	tests := []struct {
 		name    string
+		args    args
 		wantErr bool
 	}{
 		{
@@ -162,7 +194,7 @@ func Test_client_ListTask(t *testing.T) {
 	for _, testCase := range tests {
 		t.Run(testCase.name, func(t *testing.T) {
 
-			got, err := c.ListTasks()
+			got, err := c.ListTasks(testCase.args.ctx)
 			if (err != nil) != testCase.wantErr {
 				t.Errorf("ListTasks() error = %v, wantErr %v", err, testCase.wantErr)
 			}

@@ -1,6 +1,7 @@
 package mongo
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -15,9 +16,23 @@ func Test_mongoClient_GetTaskByID(t *testing.T) {
 	os.Setenv("DB_HOST", "localhost")
 
 	m, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := m.SaveTask(context.TODO(), task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
-		id string
+		ctx context.Context
+		id  string
 	}
 	tests := []struct {
 		name    string
@@ -26,7 +41,7 @@ func Test_mongoClient_GetTaskByID(t *testing.T) {
 	}{
 		{
 			name:    "success - get task from db",
-			args:    args{id: "3256a0ff-dcdf-4ced-9f18-fe88f4760724"},
+			args:    args{id: task.ID},
 			wantErr: false,
 		},
 		{
@@ -38,10 +53,10 @@ func Test_mongoClient_GetTaskByID(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := m.GetTaskByID(tt.args.id)
+
+			got, err := m.GetTaskByID(tt.args.ctx, tt.args.id)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetTaskByID() error = %v, wantErr %v", err, tt.wantErr)
-
 				return
 			}
 			fmt.Printf("got: %#v\n", got)
@@ -53,11 +68,13 @@ func Test_mongoClient_ListTasks(t *testing.T) {
 	os.Setenv("DB_PORT", "27017")
 	os.Setenv("DB_HOST", "localhost")
 	type args struct {
+		ctx  context.Context
 		task *models.Task
 	}
 	m, _ := NewClient(db.Option{})
 	tests := []struct {
 		name    string
+		args    args
 		wantErr bool
 	}{
 		{
@@ -67,12 +84,12 @@ func Test_mongoClient_ListTasks(t *testing.T) {
 		},
 	}
 
-	for _, testCase := range tests {
-		t.Run(testCase.name, func(t *testing.T) {
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-			got, err := m.ListTasks()
-			if (err != nil) != testCase.wantErr {
-				t.Errorf("ListTasks() error = %v, wantErr %v", err, testCase.wantErr)
+			got, err := m.ListTasks(tt.args.ctx)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("ListTasks() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
 			for _, task := range got {
@@ -90,9 +107,23 @@ func Test_mongoClient_RemoveTask(t *testing.T) {
 	os.Setenv("DB_PORT", "27017")
 	os.Setenv("DB_HOST", "localhost")
 	m, _ := NewClient(db.Option{})
+	task := &models.Task{
+
+		Name:      "Sample Task",
+		CreatedAt: time.Now(),
+		Status:    "Pending",
+		Deadline:  time.Now(),
+		Priority:  1,
+		Assignee:  "ali",
+	}
+	err := m.SaveTask(context.TODO(), task)
+	if err != nil {
+		t.Errorf("Failed to save task: %v", err)
+	}
 
 	type args struct {
-		id string
+		id  string
+		ctx context.Context
 	}
 	tests := []struct {
 		name    string
@@ -101,7 +132,7 @@ func Test_mongoClient_RemoveTask(t *testing.T) {
 	}{
 		{
 			name:    "success - Remove task from db",
-			args:    args{id: "0db51f58-11a1-4db4-b69e-0f5d8142529311"},
+			args:    args{id: task.ID},
 			wantErr: false,
 		},
 		{
@@ -113,7 +144,7 @@ func Test_mongoClient_RemoveTask(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := m.RemoveTask(tt.args.id); (err != nil) != tt.wantErr {
+			if err := m.RemoveTask(tt.args.ctx, tt.args.id); (err != nil) != tt.wantErr {
 				t.Errorf("RemoveTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
 
@@ -131,6 +162,7 @@ func Test_mongoClient_SaveTask(t *testing.T) {
 	}
 	createdAt := time.Now()
 	type args struct {
+		ctx  context.Context
 		task *models.Task
 	}
 	tests := []struct {
@@ -155,7 +187,7 @@ func Test_mongoClient_SaveTask(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			m, _ := NewClient(db.Option{})
-			err := m.SaveTask(tt.args.task)
+			err := m.SaveTask(tt.args.ctx, tt.args.task)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("SaveTask() error = %v, wantErr %v", err, tt.wantErr)
 			}
